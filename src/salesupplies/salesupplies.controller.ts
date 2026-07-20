@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SalesuppliesService } from './salesupplies.service';
 import { CreateSalesupplyDto } from './dto/create-salesupply.dto';
 import { UpdateSalesupplyDto } from './dto/update-salesupply.dto';
-import { ParseMongoIdPipe } from 'src/common/pipes/parse-mongo-id/parse-mongo-id.pipe';
+import { ParseMongoIdPipe } from '../common/pipes/parse-mongo-id/parse-mongo-id.pipe';
 
 @Controller('salesupplies')
 export class SalesuppliesController {
@@ -24,5 +24,17 @@ export class SalesuppliesController {
   lessSellingProduct(@Param('idCompany', ParseMongoIdPipe) idCompany: string) {
     return this.salesuppliesService.lessSellingProduct(idCompany);
   }
+
+
+  @Get('byPlatform/:idCompany')
+  byPlatform(@Param('idCompany', ParseMongoIdPipe) idCompany: string) {
+    return this.salesuppliesService.byPlatform(idCompany);
+  }
+
+  @Get('mostProfitable/:idCompany')
+  mostProfitable(@Param('idCompany', ParseMongoIdPipe) idCompany: string) {
+    return this.salesuppliesService.mostProfitable(idCompany);
+  }
+
 }
 
