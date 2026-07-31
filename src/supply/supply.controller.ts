@@ -11,4 +11,9 @@ export class SupplyController {
         return this.supplyService.findOne(id)
     }
 
+    @Get('grandCapitalSupply/:idCompany')
+    grandCapitalSupply(@Param('idCompany') idCompany:string){
+        return this.supplyService.grandTotalCostSupplyStock(idCompany)
+    }
+
 }
