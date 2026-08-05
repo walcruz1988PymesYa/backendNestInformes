@@ -26,45 +26,84 @@ export class SalesuppliesService {
     if (!Types.ObjectId.isValid(idCompany)) {
       throw new Error('El idCompany no es válido');
     }
+
     const aggregation = await this.salesuppliesModel.aggregate([
       {
         $match: {
           idCompany: new Types.ObjectId(idCompany),
-          status: "completed"
-        }
+          status: "completed",
+        },
       },
       {
-        $unwind: "$items"
+        $unwind: "$items",
       },
       {
         $group: {
           _id: "$items.idGlobalSupply",
+
           nameSupply: {
-            $first: "$items.nameSupply"
+            $first: "$items.nameSupply",
           },
+
           totalQuantitySold: {
             $sum: {
               $subtract: [
                 "$items.quantitySale",
                 {
-                  $ifNull: ["$items.quantityReturned", 0]
-                }
-              ]
-            }
+                  $ifNull: ["$items.quantityReturned", 0],
+                },
+              ],
+            },
           },
-          totalRevenue: {
-            $sum: "$items.subtotal"
+
+          totalSale: {
+            $sum: "$items.subtotal",
           },
+
           totalProfit: {
-            $sum: "$items.profit"
-          }
-        }
+            $sum: "$items.profit",
+          },
+        },
       },
+
+      // Buscar el insumo en la colección supplies
+      {
+        $lookup: {
+          from: "supplies",
+          localField: "_id",
+          foreignField: "_id",
+          as: "supply",
+        },
+      },
+
+      // Convertir supply de array a objeto
+      {
+        $unwind: {
+          path: "$supply",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
       {
         $sort: {
-          totalQuantitySold: -1
-        }
-      }
+          totalQuantitySold: -1,
+        },
+      },
+
+      // Darle una estructura más clara a la respuesta
+      {
+        $project: {
+          _id: 0,
+
+          idSupply: "$_id",
+          nameSupply: 1,
+          totalQuantitySold: 1,
+          totalSale: 1,
+          totalProfit: 1,
+
+          supply: 1,
+        },
+      },
     ]);
     return aggregation;
   }
@@ -77,41 +116,85 @@ export class SalesuppliesService {
       {
         $match: {
           idCompany: new Types.ObjectId(idCompany),
-          status: "completed"
-        }
+          status: "completed",
+        },
       },
       {
-        $unwind: "$items"
+        $unwind: "$items",
       },
       {
         $group: {
           _id: "$items.idGlobalSupply",
+
           nameSupply: {
-            $first: "$items.nameSupply"
+            $first: "$items.nameSupply",
           },
+
           totalQuantitySold: {
             $sum: {
               $subtract: [
                 "$items.quantitySale",
                 {
-                  $ifNull: ["$items.quantityReturned", 0]
-                }
-              ]
-            }
+                  $ifNull: ["$items.quantityReturned", 0],
+                },
+              ],
+            },
           },
-          totalRevenue: {
-            $sum: "$items.subtotal"
+
+          totalSale: {
+            $sum: "$items.subtotal",
           },
+
           totalProfit: {
-            $sum: "$items.profit"
-          }
-        }
+            $sum: "$items.profit",
+          },
+        },
       },
+
+      {
+        $lookup: {
+          from: "supplies",
+          localField: "_id",
+          foreignField: "_id",
+          as: "supply",
+        },
+      },
+
+      {
+        $unwind: {
+          path: "$supply",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
       {
         $sort: {
-          totalQuantitySold: 1   // <-- Ascendente
-        }
-      }
+          totalQuantitySold: 1,
+        },
+      },
+
+      {
+        $project: {
+          _id: 0,
+
+          idSupply: "$_id",
+
+          nameSupply: {
+            $ifNull: ["$supply.nameSupply", "$nameSupply"],
+          },
+
+          description: "$supply.description",
+          imgStore: "$supply.imgStore",
+          idBrand: "$supply.idBrand",
+          idCategory: "$supply.idCategory",
+
+          totalQuantitySold: 1,
+          totalSale: 1,
+          totalProfit: 1,
+
+          supply: 1,
+        },
+      },
     ]);
     return aggregation;
   }

@@ -16,7 +16,7 @@ export class SalesuppliesController {
 
   @Get('bestSelling/:idCompany')
   bestSellingProduct(@Param('idCompany', ParseMongoIdPipe) idCompany: string) {
-    console.log(idCompany)
+    
     return this.salesuppliesService.bestSellingProduct(idCompany);
   }
 
